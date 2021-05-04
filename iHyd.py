@@ -65,6 +65,7 @@ def main(in_network, region, q_low_eqtn, q2_eqtn):
     # --regional curve equations for Qlow (baseflow) and Q2 (annual peak streamflow)--
     # # # Add in regional curve equations here # # #
     if q_low_eqtn is not None:
+        arcpy.AddMessage("Evaluating qlow...")
         q_low = eval(q_low_eqtn)
     elif region == 101:  # example 1 (box elder county)
         q_low = 0.019875 * (DAsqm ** 0.6634) * (10 ** (0.6068 * 2.04))
@@ -76,6 +77,7 @@ def main(in_network, region, q_low_eqtn, q2_eqtn):
         q_low = (DAsqm ** 0.2098) + 1
 
     if q2_eqtn is not None:
+        arcpy.AddMessage("Evaluating q2...")
         q2 = eval(q2_eqtn)
     elif region == 101:  # example 1 (box elder county)
         q2 = 14.5 * DAsqm ** 0.328

@@ -66,6 +66,10 @@ def main(proj_path, in_network, out_name, surveyed_dams=None, conservation_areas
               'iPC_VLowLU', 'iPC_HighLU', 'oPC_Dist', 'iPC_LU', 'iHyd_SPLow', 'iHyd_SP2', 'DamStrat', 'iPC_RoadX',
               'iPC_Canal', 'ObsDam', 'ConsArea', 'ConsEase']
 
+    for field in fields:
+        if field not in [f.name for f in arcpy.ListFields(out_network)]:
+            arcpy.AddWarning('Missing {} Field!'.format(field))
+
     # add arbitrarily large value to avoid error
     if 'iPC_Canal' not in old_fields:
         arcpy.AddField_management(out_network, "iPC_Canal", "DOUBLE")
@@ -177,7 +181,7 @@ def main(proj_path, in_network, out_name, surveyed_dams=None, conservation_areas
                 # 'oCC_HPE' Frequent or Pervasive
                 # 'ipc_vlow_lu'(i.e., Natural) > 75
                 # 'ipc_high_lu' (i.e., Developed) < 10
-                elif occ_hpe >= 5 > occ_ex > 0 and ipc_vlow_lu > 75 and ipc_high_lu < 10:
+                elif occ_hpe >= 5 and occ_ex > 0 and ipc_vlow_lu > 75 and ipc_high_lu < 10:
                     row[2] = 'Strategic - Long-Term Investment'
                 else:
                     row[2] = 'NA'

@@ -31,6 +31,8 @@ def main(in_network, output_name, dams=None, da_threshold=None):
     :param da_threshold: Drainage area at which stream is presumably too large for dam building
     :return:
     """
+
+
     if da_threshold == "None":
         da_threshold = None
 
@@ -40,6 +42,8 @@ def main(in_network, output_name, dams=None, da_threshold=None):
     proj_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(in_network))))
     if dams:
         dams = copy_dams_to_inputs(proj_path, dams, in_network)
+
+
 
     if output_name.endswith('.shp'):
         output_network = os.path.join(os.path.dirname(in_network), output_name)
@@ -101,7 +105,7 @@ def copy_dams_to_inputs(proj_path, dams, in_network):
     """
     if proj_path in dams:
         # The dams input is already in our project folder, so we don't need to copy it over
-        return
+        return dams
 
     inputs_folder = find_folder(proj_path, "Inputs")
     beaver_dams_folder = find_folder(inputs_folder, "*[0-9]*_BeaverDams")

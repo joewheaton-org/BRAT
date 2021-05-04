@@ -90,8 +90,11 @@ def main(
     arcpy.env.outputMFlag = "Disabled"
     arcpy.CheckOutExtension("Spatial")
 
+
     # --check input projections--
     validate_inputs(seg_network, road, railroad, canal, is_verbose)
+
+    arcpy.env.outputCoordinateSystem = seg_network
 
     # name and create output folder
     new_output_folder, intermediate_folder, seg_network_copy = build_output_folder(proj_path, out_name, seg_network, road,
@@ -546,7 +549,10 @@ def igeo_attributes(out_network, in_DEM, flow_acc, midpoint_buffer, scratch, is_
         if is_verbose:
             arcpy.AddMessage("Calculating iGeo_Slope...")
         for row in cursor:
-            row[3] = (abs(row[0] - row[1]))/row[2]
+            if row[2] == 0:
+                row[3] = 0.0001
+            else:
+                row[3] = (abs(row[0] - row[1]))/row[2]
             if row[3] == 0.0:
                 row[3] = 0.0001
             cursor.updateRow(row)
@@ -954,6 +960,8 @@ def find_distance_from_feature(out_network, feature, valley_bottom, temp_dir, bu
     ct = int(count.getOutput(0))
     # if there are features, then set the distance from to high value (10000 m)
     if ct < 1:
+        if is_verbose:
+            arcpy.AddMessage('No Data found for ' + new_field_name)
         with arcpy.da.UpdateCursor(out_network, new_field_name) as cursor:
             for row in cursor:
                 row[0] = 10000.0
@@ -963,6 +971,11 @@ def find_distance_from_feature(out_network, feature, valley_bottom, temp_dir, bu
         # set extent to the stream network
         arcpy.env.extent = out_network
         # calculate euclidean distance from input features
+
+        sr = arcpy.Describe(feature_subset).spatialReference
+        unit = sr.linearUnitName
+        arcpy.AddMessage('Raster units are ' + unit)
+
         ed_feature = EucDistance(feature_subset, cell_size = 5) # cell size of 5 m
         # get min distance from feature in the within 30 m buffer of each network segment
         if new_field_name == 'iPC_RoadX':

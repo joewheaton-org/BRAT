@@ -47,11 +47,19 @@ def main(fcStreamNetwork, canal, tempDir, perennial_network, is_verbose):
 
 
 def use_stream_names(stream_network):
-    with arcpy.da.UpdateCursor(stream_network, ["IsMultiCh", "IsMainCh", "StreamName"]) as cursor:
-        for row in cursor:
-            if row[0] == 1 and row[2] != ' ':
-                row[1] = 1
-                cursor.updateRow(row)
+    fields = arcpy.ListFields(stream_network)
+    if "StreamName" in fields:
+        new_name = "StreamName"
+    elif "GNIS_Name" in fields:
+        new_name = "GNIS_Name"
+    else:
+        new_name = False
+    if new_name:
+        with arcpy.da.UpdateCursor(stream_network, ["IsMultiCh", "IsMainCh", new_name]) as cursor:
+            for row in cursor:
+                if row[0] == 1 and row[2] != ' ':
+                    row[1] = 1
+                    cursor.updateRow(row)
 
 
 def handleCanals(stream_network, canal, perennial_network, temp_folder, is_verbose):

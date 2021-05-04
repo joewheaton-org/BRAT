@@ -15,9 +15,10 @@
 import os
 import arcpy
 import sys
-from SupportingFunctions import make_folder, make_layer, get_execute_error_code, write_xml_element_with_path, find_available_num_prefix
 import XMLBuilder
 reload(XMLBuilder)
+from SupportingFunctions import make_folder, make_layer, get_execute_error_code, write_xml_element_with_path, find_available_num_prefix
+
 XMLBuilder = XMLBuilder.XMLBuilder
 
 

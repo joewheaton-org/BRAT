@@ -427,50 +427,53 @@ def search_cursor(fields, data, total, stream_network, is_complex, is_capacity_t
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for capacity, dam_complex_size, length in cursor:
-                    if capacity == 0:
-                        data[0] += capacity * (length/1000)
-                    elif capacity <= 1:
-                        data[1] += capacity * (length/1000)
-                    elif capacity <= 5:
-                        data[2] += capacity * (length/1000)
-                    elif capacity <= 15:
-                        data[3] += capacity * (length/1000)
-                    else:
-                        data[4] += capacity * (length/1000)
+                    if length is not None:
+                        if capacity == 0:
+                            data[0] += capacity * (length/1000)
+                        elif capacity <= 1:
+                            data[1] += capacity * (length/1000)
+                        elif capacity <= 5:
+                            data[2] += capacity * (length/1000)
+                        elif capacity <= 15:
+                            data[3] += capacity * (length/1000)
+                        else:
+                            data[4] += capacity * (length/1000)
         return data
 
     elif is_complex:
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, dam_complex_size in cursor:
-                    total += length
-                    if dam_complex_size == 0:
-                        data[0] += length
-                    elif dam_complex_size <= 1:
-                        data[1] += length
-                    elif dam_complex_size <= 3:
-                        data[2] += length
-                    elif dam_complex_size <= 5:
-                        data[3] += length
-                    else:
-                        data[4] += length
+                    if length is not None:
+                        total += length
+                        if dam_complex_size == 0:
+                            data[0] += length
+                        elif dam_complex_size <= 1:
+                            data[1] += length
+                        elif dam_complex_size <= 3:
+                            data[2] += length
+                        elif dam_complex_size <= 5:
+                            data[3] += length
+                        else:
+                            data[4] += length
         total = total / 1000
         write_data(data[0], data[1], data[2], data[3], data[4], total, worksheet, workbook)
     else:
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, capacity in cursor:
-                    total += length
-                    if capacity == 0:
-                        data[0] += length/1000
-                    elif capacity <= 1:
-                        data[1] += length/1000
-                    elif capacity <= 5:
-                        data[2] += length/1000
-                    elif capacity <= 15:
-                        data[3] += length/1000
-                    else:
-                        data[4] += length/1000
+                    if length is not None:
+                        total += length
+                        if capacity == 0:
+                            data[0] += length/1000
+                        elif capacity <= 1:
+                            data[1] += length/1000
+                        elif capacity <= 5:
+                            data[2] += length/1000
+                        elif capacity <= 15:
+                            data[3] += length/1000
+                        else:
+                            data[4] += length/1000
         return data
 
 
@@ -570,7 +573,8 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, fields) as cursor:
             for length, in cursor:
-                total_stream_length_km += length
+                if length is not None:
+                    total_stream_length_km += length
 
     total_stream_length_km /= 1000
     total_stream_length_mi = total_stream_length_km / 1.609344
@@ -607,7 +611,8 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, density in cursor:
-                    total_existing_veg += ((length / 1000) * density)
+                    if length is not None:
+                        total_existing_veg += ((length / 1000) * density)
     else:
         arcpy.AddWarning("Could not complete summary worksheet: {0} not in fields.".format(fields[1]))
         total_existing_veg = "N/A"
@@ -618,7 +623,8 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, density in cursor:
-                    total_historic_veg += ((length / 1000) * density)
+                    if length is not None:
+                        total_historic_veg += ((length / 1000) * density)
     else:
         arcpy.AddWarning("Could not complete summary worksheet: {0} not in fields.".format(fields[1]))
         total_historic_veg = "N/A"
@@ -631,7 +637,8 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, density in cursor:
-                    total_existing_capacity += ((length / 1000) * density)
+                    if length is not None:
+                        total_existing_capacity += ((length / 1000) * density)
 
     else:
         arcpy.AddWarning("Could not complete summary worksheet: {0} not in fields.".format(fields[1]))
@@ -645,7 +652,8 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, density in cursor:
-                    total_historic_capacity += ((length / 1000) * density)
+                    if length is not None:
+                        total_historic_capacity += ((length / 1000) * density)
     else:
         arcpy.AddWarning("Could not complete summary worksheet: {0} not in fields.".format(fields[1]))
         total_historic_capacity = "N/A"
@@ -662,8 +670,9 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
                 for length, surveyed, predicted in cursor:
                     reach_count += 1
                     if surveyed > (predicted * .8):
-                        total_surveyed_greater_length += (length / 1000)
-                        total_surveyed_greater_count += 1
+                        if length is not None:
+                            total_surveyed_greater_length += (length / 1000)
+                            total_surveyed_greater_count += 1
                     else:
                         pass
         # total_surveyed_greater_percent = float(total_surveyed_greater_count) / float(reach_count)
@@ -735,8 +744,9 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
                         # estimate_right += 1
                     else:
                         estimate_wrong += 1
-                        if length < 150:
-                            estimate_wrong_short += 1
+                        if length is not None:
+                            if length < 150:
+                                estimate_wrong_short += 1
         if float(estimate_wrong)+float(estimate_right) == 0:
             percent_correct_estimate = "N/A"
         else:
@@ -759,8 +769,9 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, category in cursor:
-                    if category == "Easiest - Low-Hanging Fruit":
-                        easiest_length += length
+                    if length is not None:
+                        if category == "Easiest - Low-Hanging Fruit":
+                            easiest_length += length
                     else:
                         pass
         percent_easiest = easiest_length / (total_stream_length_km * 1000)
@@ -776,8 +787,9 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, category in cursor:
-                    if category == "Dam Building Possible":
-                        possible_length += length
+                    if length is not None:
+                        if category == "Dam Building Possible":
+                            possible_length += length
                     else:
                         pass
         percent_possible = possible_length / (total_stream_length_km * 1000)
@@ -793,8 +805,9 @@ def write_summary_worksheet(worksheet, stream_network, watershed_name, workbook,
         for streams in split_input:
             with arcpy.da.SearchCursor(streams, fields) as cursor:
                 for length, category in cursor:
-                    if category == "Negligible Risk":
-                        negligibleLength += length
+                    if length is not None:
+                        if category == "Negligible Risk":
+                            negligibleLength += length
                     else:
                         pass
 
@@ -910,10 +923,11 @@ def write_strategy_map_worksheet(worksheet, stream_network, watershed_name, work
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'DamStrat']) as cursor:
             for length, category in cursor:
-                total += length
-                for counter, match in enumerate(category_list):
-                    if category == match:
-                        count_list[counter] += (length/1000)
+                if length is not None:
+                    total += length
+                    for counter, match in enumerate(category_list):
+                        if category == match:
+                            count_list[counter] += (length/1000)
 
     row = 2
     col = 0
@@ -1490,15 +1504,16 @@ def write_conservation_restoration(worksheet, stream_network, watershed_name, wo
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'oPBRC_CR']) as cursor:
             for length, category in cursor:
-                total += length
-                if category == "Easiest - Low-Hanging Fruit":
-                    easy += length
-                elif category == "Straight Forward - Quick Return":
-                    mod += length
-                elif category == "Strategic - Long-Term Investment":
-                    strateg += length
-                else:
-                    other += length
+                if length is not None:
+                    total += length
+                    if category == "Easiest - Low-Hanging Fruit":
+                        easy += length
+                    elif category == "Straight Forward - Quick Return":
+                        mod += length
+                    elif category == "Strategic - Long-Term Investment":
+                        strateg += length
+                    else:
+                        other += length
     # convert from m to km
     easy /= 1000
     mod /= 1000
@@ -1616,23 +1631,24 @@ def write_unsuitable_worksheet(worksheet, stream_network, watershed_name, workbo
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'oPBRC_UD']) as cursor:
             for length, category in cursor:
-                total += length
-                if category == "Anthropogenically Limited":
-                    anth += length
-                elif category == "Naturally Vegetation Limited":
-                    veg += length
-                elif category == "Slope Limited":
-                    slope += length
-                elif category == "Stream Power Limited":
-                    stream += length
-                elif category == "Potential Reservoir or Landuse":
-                    reservoir += length
-                elif category == "Dam Building Possible":
-                    dams += length
-                elif category == "Stream Size Limited":
-                    tbd += length
-                else:
-                    pass
+                if length is not None:
+                    total += length
+                    if category == "Anthropogenically Limited":
+                        anth += length
+                    elif category == "Naturally Vegetation Limited":
+                        veg += length
+                    elif category == "Slope Limited":
+                        slope += length
+                    elif category == "Stream Power Limited":
+                        stream += length
+                    elif category == "Potential Reservoir or Landuse":
+                        reservoir += length
+                    elif category == "Dam Building Possible":
+                        dams += length
+                    elif category == "Stream Size Limited":
+                        tbd += length
+                    else:
+                        pass
     # convert m to km
     anth /= 1000
     veg /= 1000
@@ -1761,17 +1777,18 @@ def write_risk_worksheet(worksheet, stream_network, watershed_name, workbook):
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'oPBRC_UI']) as cursor:
             for length, category in cursor:
-                total += length
-                if category == "Major Risk":
-                    cons += length
-                elif category == "Considerable Risk":
-                    some += length
-                elif category == "Minor Risk":
-                    minr += length
-                elif category == "Negligible Risk":
-                    negl += length
-                else:
-                    pass
+                if length is not None:
+                    total += length
+                    if category == "Major Risk":
+                        cons += length
+                    elif category == "Considerable Risk":
+                        some += length
+                    elif category == "Minor Risk":
+                        minr += length
+                    elif category == "Negligible Risk":
+                        negl += length
+                    else:
+                        pass
     # convert m to km
     cons /= 1000
     some /= 1000
@@ -1883,19 +1900,20 @@ def write_strategies_worksheet(worksheet, stream_network, watershed_name, workbo
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'ConsVRest']) as cursor:
             for length, category in cursor:
-                total += length
-                if category == "Immediate - Beaver Conservation":
-                    cons += length
-                elif category == "Immediate - Potential Beaver Translocation":
-                    trns += length
-                elif category == "Mid Term - Process-based Riparian Vegetation Resto":
-                    rest += length
-                elif category == "Long Term: Riparian Vegetation Reestablishment":
-                    veg += length
-                elif category == "Low Capacity Habitat":
-                    low += length
-                else:
-                    pass
+                if length is not None:
+                    total += length
+                    if category == "Immediate - Beaver Conservation":
+                        cons += length
+                    elif category == "Immediate - Potential Beaver Translocation":
+                        trns += length
+                    elif category == "Mid Term - Process-based Riparian Vegetation Resto":
+                        rest += length
+                    elif category == "Long Term: Riparian Vegetation Reestablishment":
+                        veg += length
+                    elif category == "Low Capacity Habitat":
+                        low += length
+                    else:
+                        pass
     # convert m to km
     cons /= 1000
     trns /= 1000
@@ -2063,20 +2081,21 @@ def write_validation_worksheet(worksheet, stream_network, watershed_name, workbo
             if category == "Urban":
                 with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'BRATvSurv', 'iPC_HighLU', 'e_DamCt']) as cursor:
                     for length, valid, land, damCount in cursor:
-                        if land > 20:
-                            if valid == -1:
-                                none_km += length
-                                none += 1
-                            elif valid >= 1 and damCount > 0:
-                                few_km += length
-                                few += 1
-                            elif damCount > 0:
-                                more_km += length
-                                more += 1
+                        if length is not None:
+                            if land > 20:
+                                if valid == -1:
+                                    none_km += length
+                                    none += 1
+                                elif valid >= 1 and damCount > 0:
+                                    few_km += length
+                                    few += 1
+                                elif damCount > 0:
+                                    more_km += length
+                                    more += 1
+                                else:
+                                    pass
                             else:
                                 pass
-                        else:
-                            pass
             elif category == "Undeveloped":
                 with arcpy.da.SearchCursor(streams,
                                            ['SHAPE@Length',
@@ -2085,20 +2104,21 @@ def write_validation_worksheet(worksheet, stream_network, watershed_name, workbo
                                             'iPC_VLowLU',
                                             'e_DamCt']) as cursor:
                     for length, valid, landHigh, landLow, damCount in cursor:
-                        if (not landHigh > 20) and (landLow > 90):
-                            if valid == -1:
-                                none_km += length
-                                none += 1
-                            elif valid >= 1 and damCount > 0:
-                                few_km += length
-                                few += 1
-                            elif damCount > 0:
-                                more_km += length
-                                more += 1
+                        if length is not None:
+                            if (not landHigh > 20) and (landLow > 90):
+                                if valid == -1:
+                                    none_km += length
+                                    none += 1
+                                elif valid >= 1 and damCount > 0:
+                                    few_km += length
+                                    few += 1
+                                elif damCount > 0:
+                                    more_km += length
+                                    more += 1
+                                else:
+                                    pass
                             else:
                                 pass
-                        else:
-                            pass
             else:
                 with arcpy.da.SearchCursor(streams,
                                            ['SHAPE@Length',
@@ -2107,20 +2127,21 @@ def write_validation_worksheet(worksheet, stream_network, watershed_name, workbo
                                             'iPC_VLowLU',
                                             'e_DamCt']) as cursor:
                     for length, valid, landHigh, landLow, damCount in cursor:
-                        if (not landHigh > 20) and (not landLow > 90):
-                            if valid == -1:
-                                none_km += length
-                                none += 1
-                            elif valid >= 1 and damCount > 0:
-                                few_km += length
-                                few += 1
-                            elif damCount > 0:
-                                more_km += length
-                                more += 1
+                        if length is not None:
+                            if (not landHigh > 20) and (not landLow > 90):
+                                if valid == -1:
+                                    none_km += length
+                                    none += 1
+                                elif valid >= 1 and damCount > 0:
+                                    few_km += length
+                                    few += 1
+                                elif damCount > 0:
+                                    more_km += length
+                                    more += 1
+                                else:
+                                    pass
                             else:
                                 pass
-                        else:
-                            pass
         few_km /= 1000
         more_km /= 1000
         none_km /= 1000
@@ -2256,16 +2277,17 @@ def write_historic_remaining_worksheet(worksheet, stream_network, watershed_name
     for streams in split_input:
         with arcpy.da.SearchCursor(streams, ['SHAPE@Length', 'mCC_EXvHPE']) as cursor:
             for length, percent in cursor:
-                if percent <= 0.25:
-                    zero_25 += length
-                elif percent <= 0.50:
-                    twentyfive_50 += length
-                elif percent <= 0.75:
-                    fifty_75 += length
-                elif percent <= 1.0:
-                    seventyfive_100 += length
-                else:
-                    hundred_plus += length
+                if length is not None:
+                    if percent <= 0.25:
+                        zero_25 += length
+                    elif percent <= 0.50:
+                        twentyfive_50 += length
+                    elif percent <= 0.75:
+                        fifty_75 += length
+                    elif percent <= 1.0:
+                        seventyfive_100 += length
+                    else:
+                        hundred_plus += length
 
     zero_25 /= 1000
     twentyfive_50 /= 1000
